@@ -1,0 +1,135 @@
+# https://blog.thelazyfox.xyz/how-to-create-healthchecks-for-docker/
+
+version: '3.7'
+
+services:
+  caddy:
+    build:
+      context: ./
+      dockerfile: ./DockerfileCaddy
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "6513:6513"
+    # develop:
+    #   watch:
+    #     - action: rebuild
+    #       path: ./CaddyfileDev
+    volumes:
+      - ./CaddyfileDev:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - yume_cloud_demo_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl http://caddy:6513/ --max-time 80"]
+      interval: 30s
+      start_period: 20s
+      timeout: 80s
+      retries: 3
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ./Dockerfile
+    command: npm run dev
+    privileged: true
+    volumes:
+      - ./frontend:/app
+    expose:
+      - 5173
+    networks:
+      - yume_cloud_demo_network
+    restart: always
+    healthcheck:
+      # test: ["CMD-SHELL", "curl http://localhost:5173/ --max-time 60"]
+      test: ["CMD-SHELL", "test 0"]
+      interval: 30s
+      start_period: 20s
+      timeout: 80s
+      retries: 3
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: ./Dockerfile
+    command: python3 -m app start
+    privileged: true
+    volumes:
+      - ./backend:/app
+    # develop:
+    #   watch:
+    #     - action: rebuild
+    #       path: ./backend
+    expose:
+      - 6515
+    networks:
+      - yume_cloud_demo_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl http://localhost:6515/ping --max-time 60"]
+      interval: 30s
+      start_period: 20s
+      timeout: 80s
+      retries: 3
+    restart: always
+
+  celery:
+    build:
+      context: ./backend
+      dockerfile: ./Dockerfile
+    command: celery -A app worker --loglevel=info --concurrency 7 -E
+    privileged: true
+    # develop:
+    #   watch:
+    #     - action: rebuild
+    #       path: ./backend
+    volumes:
+      - ./backend:/app
+    expose:
+      - 6515
+    networks:
+      - yume_cloud_demo_network
+    # healthcheck:
+    #   test: ["CMD-SHELL", "curl http://localhost:6515/api/test/ping --max-time 60"]
+    #   interval: 30s
+    #   start_period: 20s
+    #   timeout: 80s
+    #   retries: 3
+    restart: always
+
+  # dragonfly:
+  #   image: 'docker.dragonflydb.io/dragonflydb/dragonfly'
+  #   ulimits:
+  #     memlock: -1
+  #   expose:
+  #     - 6379
+  #   networks:
+  #     - yume_cloud_demo_network
+  #   volumes:
+  #     - dragonflydata:/data
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 30s
+  #     start_period: 20s
+  #     timeout: 10s
+  #     retries: 3
+  #   restart: always
+
+  autoheal:
+    restart: always
+    image: willfarrell/autoheal
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=all
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  caddy_data:
+  caddy_config:
+  dragonflydata:
+  redis_data:
+
+networks:
+  yume_cloud_demo_network:
+    driver: bridge

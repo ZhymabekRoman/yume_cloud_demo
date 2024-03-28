@@ -1,0 +1,12 @@
+:6513 {
+    encode gzip
+    handle_path /* {
+        reverse_proxy http://frontend:5173
+    }
+
+    # Handle requests to /api/*
+    handle_path /api/* {
+        # Strip the /api prefix and proxy the request
+        reverse_proxy http://api:8000
+    }
+}
