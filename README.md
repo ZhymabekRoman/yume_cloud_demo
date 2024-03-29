@@ -1,16 +1,23 @@
 ## YUME Cloud DEMO
 
 ### Stack
+## Backend
 - Django
-- Django Rest Framework
 - Docker
 - Postgres
+
+## Frotend
+- React
+- ShadcnUI (Tailwinds CSS)
+
 - Caddy as reverse proxy
 
 ### RUN:
 ```
-sudo docker-compose -f docker-compose.yml build
-sudo docker-compose -f docker-compose.yml up
+# cd frontend
+# npm i
+sudo docker compose -f docker-compose-dev.yml build
+sudo docker compose -f docker-compose-dev.yml up
 ```
 
 and access app on http://localhost:6513

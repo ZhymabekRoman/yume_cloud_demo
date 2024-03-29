@@ -7,6 +7,6 @@
     # Handle requests to /api/*
     handle_path /api/* {
         # Strip the /api prefix and proxy the request
-        reverse_proxy http://api:8000
+        reverse_proxy http://django:8000
     }
 }

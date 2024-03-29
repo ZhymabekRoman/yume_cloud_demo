@@ -24,7 +24,7 @@ const AddProductToOrder = () => {
   const handleSubmit = async (data) => {
     try {
       await addProductToOrder(orderId, data);
-      navigate(`/orders/${orderId}`);
+      navigate("/");
     } catch (error) {
       console.error("Failed to add product to order:", error);
     }
@@ -38,7 +38,12 @@ const AddProductToOrder = () => {
       </div>
       <div className="space-y-1">
         <Label htmlFor="price">Price:</Label>
-        <Input id="price" {...form.register("price")} type="number" step="0.01" />
+        <Input
+          id="price"
+          {...form.register("price")}
+          type="number"
+          step="0.01"
+        />
       </div>
       <div className="space-y-1">
         <Label htmlFor="duration">Duration:</Label>

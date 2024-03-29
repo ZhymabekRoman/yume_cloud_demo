@@ -17,7 +17,14 @@ class OrderSerializer(serializers.ModelSerializer):
 #         fields = '__all__'
 
 class OrderProductSerializer(serializers.ModelSerializer):
+    products = serializers.SerializerMethodField()
+
     class Meta:
         model = OrderProduct
-        fields = ['id', 'product', 'price', 'duration']
+        fields = ['id', 'product', 'price', 'duration', 'products']
         extra_kwargs = {'order': {'write_only': True}}
+
+    def get_products(self, obj):
+        # Retrieve the related products for the order
+        products = Product.objects.filter(orderproduct__order=obj)
+        return ProductSerializer(products, many=True).data
